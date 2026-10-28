@@ -562,7 +562,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 </section>
 
 <!-- 3 為什麼唱過的比說過的更不容易忘 -->
-<section class="slide" id="memory" data-title="唱過的比較不會忘" aria-label="為什麼唱過的比說過的更不容易忘">
+<section class="slide" id="memory" data-hidden data-title="唱過的比較不會忘" aria-label="為什麼唱過的比說過的更不容易忘">
   <div class="wrap">
     <p class="eyebrow">歌謠教學 × 語言學習</p>
     <h1 class="q">為什麼<em>唱過的</em>，比說過的更不容易忘？</h1>
@@ -591,7 +591,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
 </section>
 
 <!-- 4 歌就是教材 -->
-<section class="slide" id="grammar" data-title="拆一句歌詞" aria-label="歌就是教材">
+<section class="slide" id="grammar" data-hidden data-title="拆一句歌詞" aria-label="歌就是教材">
   <div class="wrap">
     <div class="head">
       <p class="eyebrow">歌就是教材・O 'olic no 'orip 生活的詩</p>
@@ -1325,7 +1325,7 @@ h1,h2,h3{margin:0;text-wrap:balance}
   });
 
   /* ---------- slides ---------- */
-  const slides = $$(".slide");
+  const slides = $$(".slide:not([data-hidden])");
   const ticks = $("#ticks");
   slides.forEach((s, i) => {
     const b = document.createElement("button");
