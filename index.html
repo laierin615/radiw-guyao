@@ -391,6 +391,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .mini-time{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .mini-stop{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:grid;place-items:center;flex:none}
 .mini-stop::before{content:"";width:10px;height:10px;background:var(--fg);border-radius:2px}
+.vol{flex:none;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel);padding:0 10px;display:inline-flex;align-items:center;gap:6px}
+.vol button{border:0;background:none;cursor:pointer;padding:0;width:24px;font-size:16px;line-height:1;color:var(--fg)}
+.vol input{width:96px;accent-color:var(--sun)}
+@media (max-width:640px){.vol input{width:64px}}
 
 /* ---------- bar ---------- */
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:20;height:calc(var(--bar-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);
@@ -1148,6 +1152,10 @@ h1,h2,h3{margin:0;text-wrap:balance}
   <button class="nb" id="prev" type="button" aria-label="上一頁">‹</button>
   <div class="where"><span id="pos">01 / 13</span><span id="ttl" aria-live="polite">封面</span></div>
   <div class="ticks" id="ticks"></div>
+  <div class="vol" role="group" aria-label="音量">
+    <button id="volMute" type="button" aria-label="靜音">🔊</button>
+    <input type="range" id="vol" min="0" max="100" value="100" aria-label="音量大小">
+  </div>
   <button class="tool" id="fsBtn" type="button" aria-label="全螢幕（F）">⤢<span class="tool-label">全螢幕</span></button>
   <button class="nb" id="next" type="button" aria-label="下一頁">›</button>
 </nav>
@@ -1157,6 +1165,32 @@ h1,h2,h3{margin:0;text-wrap:balance}
   "use strict";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  /* ---------- volume: one level for every song and video ---------- */
+  let vol = 1, muted = false;
+  try { const v = parseFloat(localStorage.getItem("radiw-vol")); if (v >= 0 && v <= 1) vol = v; } catch (e) {}
+  const media = new Set();
+  const applyVol = (el) => { el.volume = muted ? 0 : vol; };
+  const nativePlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function () { media.add(this); applyVol(this); return nativePlay.apply(this, arguments); };
+  const volIn = $("#vol"), volBtn = $("#volMute");
+  const renderVol = () => {
+    const v = muted ? 0 : vol;
+    volIn.value = Math.round(v * 100);
+    volBtn.textContent = v === 0 ? "🔇" : v < 0.5 ? "🔉" : "🔊";
+    volBtn.setAttribute("aria-label", v === 0 ? "取消靜音" : "靜音");
+    media.forEach(applyVol);
+    $$("video").forEach(applyVol);
+    try { localStorage.setItem("radiw-vol", String(vol)); } catch (e) {}
+  };
+  volIn.addEventListener("input", () => { vol = volIn.value / 100; muted = false; renderVol(); });
+  volIn.addEventListener("change", () => volIn.blur());
+  volBtn.addEventListener("click", () => {
+    if (muted || vol === 0) { muted = false; if (vol === 0) vol = 0.8; } else muted = true;
+    renderVol(); volBtn.blur();
+  });
+  renderVol();
+
   const fmt = (s) => {
     if (!isFinite(s) || s < 0) s = 0;
     const m = Math.floor(s / 60), r = Math.floor(s % 60);
